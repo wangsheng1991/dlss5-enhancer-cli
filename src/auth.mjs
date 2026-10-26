@@ -7,6 +7,7 @@
  * until a password is set on it; `DLSS5_TOKEN` exists for callers that already hold a fresh ID
  * token (CI, scripts) and is never written to disk.
  */
+import { createHash } from 'node:crypto';
 import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -101,6 +102,21 @@ async function refresh(record) {
     refreshToken: data.refresh_token || record.refreshToken,
     expiresAt: Date.now() + Number(data.expires_in || 3600) * 1000
   };
+}
+
+/**
+ * A stable, non-secret salt that identifies the account behind a token.
+ *
+ * The provider deduplicates submissions by idempotency key across *all* of its clients, so a key
+ * computed from the file bytes alone collides the moment a second account enhances the same picture
+ * — the provider answers 409 and nothing runs. Binding the key to the account (and, in `batch.mjs`,
+ * to the upload it belongs to) keeps duplicate protection where it belongs: on a retry of one
+ * submission, not across unrelated users.
+ */
+export async function accountScope(token = '') {
+  const record = await readCredentials();
+  if (record?.uid) return record.uid;
+  return token ? createHash('sha256').update(token).digest('hex').slice(0, 16) : '';
 }
 
 /** A usable ID token: `DLSS5_TOKEN` wins, then a cached one, then a refresh. */

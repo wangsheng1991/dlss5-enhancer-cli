@@ -13,6 +13,18 @@ npx github:wangsheng1991/dlss5-enhancer-cli enhance ./photos --factor 2 --compar
 - **Not a free unlimited service.** Every image is one task on the same account and the same credits as the website.
 - **Not a pixel-exact upscaler.** The model regenerates detail; it does not recover the "true" pixels. Call it enhancement, not super resolution.
 
+## Desktop window
+
+`desktop/` is the same engine with a window around it: drop a folder, watch each file move from queued
+to done, compare before and after, and keep every result next to its source. It reads the same
+credentials file and spends the same credits.
+
+```bash
+cd desktop && npm install && npm start   # Electron, dev dependency only
+```
+
+See [desktop/README.md](desktop/README.md) for the checks that need no clicking (`npm run smoke`).
+
 ## Requirements
 
 Node 18 or newer. No dependencies, no build step, nothing to compile.

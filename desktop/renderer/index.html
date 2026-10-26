@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' dlss5file: data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>DLSS5 Enhance</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <span class="mark" aria-hidden="true"></span>
+    <span>DLSS5 Enhance</span>
+    <span class="tag">batch</span>
+  </div>
+  <div class="account">
+    <span id="account" class="account-line">Checking session…</span>
+    <button id="signin-open" class="btn small" type="button">Sign in</button>
+    <button id="signout" class="btn small ghost" type="button" hidden>Sign out</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel drop" id="drop" aria-label="Add images">
+    <div class="drop-inner">
+      <p class="drop-title">Drop images here</p>
+      <p class="drop-sub">JPEG, PNG or WebP · up to 10 MiB and 16 MP each</p>
+      <button id="pick" class="btn primary" type="button">Choose files…</button>
+    </div>
+  </section>
+
+  <section class="panel options" aria-label="Run settings">
+    <label class="field">
+      <span>Scale</span>
+      <select id="factor">
+        <option value="2">×2</option>
+        <option value="4">×4</option>
+      </select>
+    </label>
+    <label class="field">
+      <span>Format</span>
+      <select id="format">
+        <option value="webp">WebP</option>
+        <option value="png">PNG</option>
+        <option value="jpeg">JPEG</option>
+      </select>
+    </label>
+    <label class="field grow">
+      <span>Save to</span>
+      <span class="out-row">
+        <input id="out" type="text" readonly placeholder="Next to each source file" spellcheck="false">
+        <button id="pick-out" class="btn small" type="button">Choose…</button>
+        <button id="clear-out" class="btn small ghost" type="button" title="Use the source folder">Reset</button>
+      </span>
+    </label>
+    <label class="field narrow">
+      <span>At once</span>
+      <select id="concurrency">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select>
+    </label>
+    <label class="check">
+      <input id="force" type="checkbox">
+      <span>Redo finished files</span>
+    </label>
+    <button id="run" class="btn primary run" type="button" disabled>Enhance</button>
+  </section>
+
+  <section class="panel list" aria-label="Queue">
+    <div class="list-head">
+      <span></span>
+      <span class="cols">File</span>
+      <span class="cols status">Status</span>
+      <span class="cols actions"></span>
+    </div>
+    <ul id="rows" class="rows"></ul>
+    <p id="empty" class="empty">Nothing queued. Every finished file keeps its source name with <code>-enhanced</code> added.</p>
+  </section>
+
+  <footer class="summary">
+    <span id="summary-line">No run yet.</span>
+    <span class="spacer"></span>
+    <button id="clear-queue" class="btn small ghost" type="button">Clear list</button>
+    <button id="site" class="btn small ghost" type="button">Open the site</button>
+  </footer>
+</main>
+
+<dialog id="auth" class="auth">
+  <form id="auth-form" method="dialog">
+    <h2 id="auth-title">Sign in</h2>
+    <p class="hint">The same email and password as your account on dlss5nvidia.com. Only a refresh
+      token is stored, readable by you alone, here:</p>
+    <p id="cred-path" class="mono path"></p>
+    <label class="field"><span>Email</span><input id="auth-email" type="email" autocomplete="username" required></label>
+    <label class="field"><span>Password</span><input id="auth-password" type="password" autocomplete="current-password" required></label>
+    <p id="auth-error" class="error" role="alert" hidden></p>
+    <div class="auth-actions">
+      <button id="auth-switch" class="btn small ghost" type="button">Create an account</button>
+      <span class="spacer"></span>
+      <button id="auth-cancel" class="btn small" type="button">Cancel</button>
+      <button id="auth-submit" class="btn primary small" type="submit">Sign in</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="compare" class="compare">
+  <div class="compare-head">
+    <span id="compare-title" class="mono"></span>
+    <button id="compare-close" class="btn small ghost" type="button">Close</button>
+  </div>
+  <div class="compare-body">
+    <figure><img id="compare-before" alt="Before"><figcaption>before — the file you gave it</figcaption></figure>
+    <figure><img id="compare-after" alt="After"><figcaption>after — what the model rendered</figcaption></figure>
+  </div>
+</dialog>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

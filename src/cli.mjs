@@ -3,13 +3,12 @@
  * log out. `--dry-run` never touches the network, so the geometry and the file checks can be
  * inspected before a single credit is spent.
  */
-import { createHash } from 'node:crypto';
-import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
+import { readdir, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
-import { planOutput, readDimensions } from './geometry.mjs';
-import { CONTENT_TYPES, DEFAULT_JOB_TIMEOUT_MS, FACTORS, MAX_PIXELS, OUTPUT_FORMATS } from './config.mjs';
-import { credentialPath, getToken, readCredentials, register as createAccount, signIn } from './auth.mjs';
-import { bootstrap, downloadResult, submitEnhance, upload, waitForJob, whoami } from './api.mjs';
+import { CONTENT_TYPES, DEFAULT_JOB_TIMEOUT_MS, FACTORS, OUTPUT_FORMATS } from './config.mjs';
+import { accountScope, credentialPath, getToken, readCredentials, register as createAccount, signIn } from './auth.mjs';
+import { bootstrap, whoami } from './api.mjs';
+import { runBatch } from './batch.mjs';
 
 const USAGE = `dlss5-enhance — batch-enhance images from your own machine
 
@@ -111,10 +110,6 @@ async function collectFiles(inputs) {
   return [...new Set(found)];
 }
 
-/** Stable across retries: the same bytes with the same settings is the same job. */
-const idempotencyKey = (buffer, { factor, format, seed, steps }) =>
-  createHash('sha256').update(buffer).update(`|${factor}|${format}|${seed}|${steps}`).digest('hex').slice(0, 64);
-
 async function readPassword(options) {
   if (process.env.DLSS5_PASSWORD) return process.env.DLSS5_PASSWORD.trim();
   if (!options.passwordStdin) {
@@ -175,110 +170,41 @@ async function enhance(files, options) {
   const sources = await collectFiles(files);
   if (sources.length === 0) throw new Error('No images found in the given paths.');
 
-  const summary = [];
+  // The window and the terminal share one engine: everything below is settings plus reporting.
+  const runOptions = { ...options, out: options.out ? resolve(options.out) : '' };
   const token = options.dryRun ? null : await getToken();
   if (token) await bootstrap(token).catch(() => null);
+  runOptions.accountId = token ? await accountScope(token) : '';
 
-  const runOne = async (file) => {
-    const buffer = await readFile(file);
-    const dims = readDimensions(buffer);
-    const row = { file, ok: false, error: null, out: null, width: null, height: null };
-    if (!dims) {
-      row.error = 'Could not read the image size (not a JPEG, PNG or WebP?)';
-      return row;
-    }
-    if (dims.width * dims.height > MAX_PIXELS) {
-      row.error = `${dims.width} × ${dims.height} (${Math.round((dims.width * dims.height) / 1e6)} MP) is over the 16 MP ceiling; shrink it first.`;
-      return row;
-    }
-    const plan = planOutput(dims.width, dims.height, options.factor);
-    const dir = options.out ? resolve(options.out) : dirname(file);
-    const stem = basename(file, extname(file));
-    // The output name is decided before the call, from the format we asked for, so a rerun can skip
-    // a file it already paid for — and `--dry-run` can print the real path.
-    const target = join(dir, `${stem}-enhanced.${options.format === 'jpeg' ? 'jpg' : options.format}`);
-    const existing = options.force ? null : await stat(target).catch(() => null);
-    row.width = plan.width;
-    row.height = plan.height;
-
-    if (options.dryRun) {
-      row.ok = true;
-      row.out = target;
-      row.note = plan.clamped ? `factor ${options.factor} clamped to ${plan.factor} by the 1536 px edge` : `factor ${plan.factor}`;
-      return row;
-    }
-    if (existing) {
-      row.ok = true;
-      row.skipped = true;
-      row.out = target;
-      return row;
-    }
-
-    const fileId = await upload(token, {
-      buffer,
-      fileName: basename(file),
-      contentType: CONTENT_TYPES[extname(file).slice(1).toLowerCase()],
-      width: dims.width,
-      height: dims.height
-    });
-    const accepted = await submitEnhance(token, {
-      fileId,
-      width: dims.width,
-      height: dims.height,
-      factor: options.factor,
-      seed: options.seed,
-      steps: options.steps,
-      format: options.format,
-      idempotencyKey: idempotencyKey(buffer, options)
-    });
-    const state = await waitForJob(token, accepted.jobId, {
-      timeoutMs: options.timeoutMin * 60 * 1000
-    });
-    if (state.status !== 'SUCCEEDED') {
-      row.error = state.error || 'The job failed.';
-      return row;
-    }
-    const result = await downloadResult(token, accepted.jobId, state);
-    const outputPath = target;
-    await mkdir(dirname(outputPath), { recursive: true });
-    await writeFile(outputPath, result.buffer);
-    row.ok = true;
-    row.out = outputPath;
-    row.contentType = result.contentType;
-    row.bytes = result.buffer.length;
-    if (options.compare) {
-      row.compare = await writeCompare(outputPath, file, stem);
-    }
-    return row;
-  };
-
-  const queue = [...sources];
-  const workers = Array.from({ length: Math.min(options.concurrency, queue.length) }, async () => {
-    for (;;) {
-      const file = queue.shift();
-      if (!file) return;
-      let row;
-      try {
-        row = await runOne(file);
-      } catch (error) {
-        row = { file, ok: false, error: error.message };
-      }
-      summary.push(row);
-      if (!options.json) {
-        const label = row.ok ? (row.skipped ? 'skip ' : 'ok   ') : 'FAIL ';
-        const target = row.out ? ` → ${row.out}` : '';
-        const detail = row.error ? ` — ${row.error}` : row.width ? ` (${row.width} × ${row.height})` : '';
-        console.log(`${label}${basename(file)}${target}${detail}`);
-      }
+  const rows = await runBatch(sources, runOptions, {
+    token,
+    onEvent: (event) => {
+      if (event.type !== 'done' || options.json) return;
+      const row = event.row;
+      const label = row.ok ? (row.skipped ? 'skip ' : 'ok   ') : 'FAIL ';
+      const target = row.out ? ` \u2192 ${row.out}` : '';
+      const detail = row.error ? ` \u2014 ${row.error}` : row.width ? ` (${row.width} \u00d7 ${row.height})` : '';
+      console.log(`${label}${basename(row.file)}${target}${detail}`);
     }
   });
-  await Promise.all(workers);
 
-  const failed = summary.filter((row) => !row.ok);
+  if (options.dryRun) {
+    for (const row of rows) {
+      if (row.ok) row.note = row.clamped ? `factor ${runOptions.factor} clamped by the 1536 px edge` : `factor ${runOptions.factor}`;
+    }
+  }
+  if (options.compare && !options.dryRun) {
+    for (const row of rows) {
+      if (!row.ok || row.skipped || !row.out) continue;
+      row.compare = await writeCompare(row.out, row.file, basename(row.file, extname(row.file))).catch(() => null);
+    }
+  }
+
+  const failed = rows.filter((row) => !row.ok);
   if (options.json) {
-    console.log(JSON.stringify({ dryRun: options.dryRun, total: summary.length, failed: failed.length, results: summary }, null, 2));
+    console.log(JSON.stringify({ dryRun: options.dryRun, total: rows.length, failed: failed.length, results: rows }, null, 2));
   } else {
-    console.log(`\n${summary.length - failed.length}/${summary.length} done${failed.length ? `, ${failed.length} failed` : ''}.`);
+    console.log(`\n${rows.length - failed.length}/${rows.length} done${failed.length ? `, ${failed.length} failed` : ''}.`);
   }
   return failed.length === 0 ? 0 : 1;
 }

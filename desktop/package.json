@@ -1,0 +1,15 @@
+{
+  "name": "dlss5-enhance-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop window for the DLSS5NVIDIA visual enhancer: drop a folder of images, watch each one finish, compare before and after. Same account and same public API as the site and the CLI.",
+  "type": "module",
+  "main": "main.mjs",
+  "scripts": {
+    "start": "electron .",
+    "smoke": "electron . --smoke"
+  },
+  "devDependencies": {
+    "electron": "^45.0.0"
+  }
+}

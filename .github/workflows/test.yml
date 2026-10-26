@@ -19,3 +19,8 @@ jobs:
         run: node --test test/*.test.mjs
       - name: CLI smoke test
         run: node bin/dlss5-enhance.mjs --help
+      - name: Desktop shell parses
+        run: |
+          node --check desktop/main.mjs
+          node --check desktop/preload.cjs
+          node --check desktop/renderer/app.js
