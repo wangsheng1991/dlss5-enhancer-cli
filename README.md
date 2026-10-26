@@ -24,6 +24,8 @@ cd desktop && npm install && npm start   # Electron, dev dependency only
 cd desktop && npm run make:dmg           # → ../release/DLSS5 Enhance-0.1.0.dmg
 ```
 
+**Download:** [DLSS5 Enhance 0.1.0](https://github.com/wangsheng1991/dlss5-enhancer-cli/releases/tag/v0.1.0) (unsigned macOS build; right-click → Open the first time) — or build it yourself with `npm run make:dmg`.
+
 See [desktop/README.md](desktop/README.md) for the checks that need no clicking (`npm run smoke`).
 
 ## Requirements
