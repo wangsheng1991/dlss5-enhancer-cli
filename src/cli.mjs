@@ -8,12 +8,13 @@ import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { planOutput, readDimensions } from './geometry.mjs';
 import { CONTENT_TYPES, DEFAULT_JOB_TIMEOUT_MS, FACTORS, MAX_PIXELS, OUTPUT_FORMATS } from './config.mjs';
-import { credentialPath, getToken, readCredentials, signIn } from './auth.mjs';
-import { downloadResult, submitEnhance, upload, waitForJob, whoami } from './api.mjs';
+import { credentialPath, getToken, readCredentials, register as createAccount, signIn } from './auth.mjs';
+import { bootstrap, downloadResult, submitEnhance, upload, waitForJob, whoami } from './api.mjs';
 
 const USAGE = `dlss5-enhance — batch-enhance images from your own machine
 
   dlss5-enhance login [--email <email>] [--password-stdin]
+  dlss5-enhance register [--email <email>] --password-stdin
   dlss5-enhance whoami
   dlss5-enhance enhance <file|dir ...> [options]
   dlss5-enhance logout
@@ -130,7 +131,17 @@ async function login(options) {
   const email = options.email || process.env.DLSS5_EMAIL;
   if (!email) throw new Error('Give the account email: --email you@example.com');
   const record = await signIn(email, await readPassword(options));
+  const account = await bootstrap(record.idToken).catch(() => null);
   console.log(`Signed in as ${record.email}. Credentials: ${credentialPath()}`);
+  if (account) console.log(`Account: ${account.tier || 'free'} · ${account.credits} credits${account.bonusCredits ? ` (+${account.bonusCredits} bonus)` : ''}`);
+}
+
+async function register(options) {
+  const email = options.email || process.env.DLSS5_EMAIL;
+  if (!email) throw new Error('Give the email to register: --email you@example.com');
+  const record = await createAccount(email, await readPassword(options));
+  const account = await bootstrap(record.idToken).catch(() => null);
+  console.log(`Created ${record.email} and signed in.${account ? ` Credits: ${account.credits}.` : ''}`);
 }
 
 async function logout() {
@@ -166,6 +177,7 @@ async function enhance(files, options) {
 
   const summary = [];
   const token = options.dryRun ? null : await getToken();
+  if (token) await bootstrap(token).catch(() => null);
 
   const runOne = async (file) => {
     const buffer = await readFile(file);
@@ -296,6 +308,7 @@ export async function main(argv) {
       return 0;
     }
     if (command === 'login') return await login(options), 0;
+    if (command === 'register') return await register(options), 0;
     if (command === 'logout') return await logout(), 0;
     if (command === 'whoami') return await whoamiCommand(options), 0;
     if (command === 'enhance') return await enhance(files, options);

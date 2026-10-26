@@ -23,6 +23,10 @@ function startMock({ failFirstSubmit = false } = {}) {
     for await (const chunk of req) chunks.push(chunk);
     const body = Buffer.concat(chunks);
 
+    if (url.pathname === '/v1/accounts:signUp') {
+      const payload = JSON.parse(body.toString() || '{}');
+      return json(200, { idToken: 'id-9', refreshToken: 'refresh-9', email: payload.email, localId: 'uid-9', expiresIn: '3600' });
+    }
     if (url.pathname === '/v1/accounts:signInWithPassword') {
       const payload = JSON.parse(body.toString() || '{}');
       if (payload.password !== 'correct horse') return json(400, { error: { message: 'INVALID_LOGIN_CREDENTIALS' } });
@@ -162,6 +166,20 @@ test('a bad password fails with a readable reason and stores nothing', async () 
     assert.equal(await main(['login', '--email', 'user@example.com']), 2);
     const creds = await readFile(process.env.DLSS5_CREDENTIALS, 'utf8').catch(() => '');
     assert.equal(creds.includes('refresh'), false);
+  } finally {
+    server.close();
+  }
+});
+
+test('register creates an account and stores its token', async () => {
+  const { server, port } = await startMock();
+  try {
+    const { main } = await loadCli(port);
+    process.env.DLSS5_PASSWORD = 'brand new password';
+    assert.equal(await main(['register', '--email', 'fresh@example.com']), 0);
+    const creds = JSON.parse(await readFile(process.env.DLSS5_CREDENTIALS, 'utf8'));
+    assert.equal(creds.refreshToken, 'refresh-9');
+    assert.equal(creds.email, 'fresh@example.com');
   } finally {
     server.close();
   }

@@ -22,7 +22,10 @@ const explain = (code) => {
     INVALID_PASSWORD: 'Wrong password.',
     INVALID_LOGIN_CREDENTIALS: 'Wrong email or password.',
     USER_DISABLED: 'That account is disabled.',
-    TOO_MANY_ATTEMPTS_TRY_LATER: 'Too many attempts. Wait a few minutes.'
+    TOO_MANY_ATTEMPTS_TRY_LATER: 'Too many attempts. Wait a few minutes.',
+    EMAIL_EXISTS: 'That email already has an account. Use `login` instead.',
+    WEAK_PASSWORD: 'Firebase requires at least 6 characters.',
+    INVALID_EMAIL: 'That does not look like an email address.'
   };
   return map[code] || code || 'Sign-in failed.';
 };
@@ -43,7 +46,19 @@ async function identity(path, body) {
 }
 
 export async function signIn(email, password) {
-  const data = await identity('signInWithPassword', { email, password, returnSecureToken: true });
+  return await store(await identity('signInWithPassword', { email, password, returnSecureToken: true }));
+}
+
+/**
+ * Create the account from the terminal, with the same public endpoint the website's own form uses.
+ * A new account starts with the site's signup credits, so this is also how a first run gets paid for.
+ */
+export async function register(email, password) {
+  if (password.length < 6) throw new Error('Firebase requires at least 6 characters.');
+  return await store(await identity('signUp', { email, password, returnSecureToken: true }));
+}
+
+async function store(data) {
   const record = {
     email: data.email,
     uid: data.localId,

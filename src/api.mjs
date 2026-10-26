@@ -36,6 +36,12 @@ async function call(path, token, { method = 'GET', body, headers = {}, timeout =
 
 export const whoami = (token) => call('/api/me', token);
 
+/**
+ * The website creates the profile (and the signup credits) on first signed-in load. A command-line
+ * client has no page load, so it has to ask: without this the API answers "Account is not initialized".
+ */
+export const bootstrap = (token) => call('/api/me/bootstrap', token, { method: 'POST' });
+
 /** Upload one picture and return its file id. */
 export async function upload(token, { buffer, fileName, contentType, width, height }) {
   if (buffer.length > MAX_UPLOAD_BYTES) {
