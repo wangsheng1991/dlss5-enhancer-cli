@@ -1,0 +1,21 @@
+name: test
+on:
+  push:
+  pull_request:
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["18", "20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: No dependencies to install
+        run: node --version
+      - name: Unit and flow tests (local mock, no credits)
+        run: node --test test/*.test.mjs
+      - name: CLI smoke test
+        run: node bin/dlss5-enhance.mjs --help

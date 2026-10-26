@@ -1,0 +1,33 @@
+{
+  "name": "dlss5-enhance",
+  "version": "0.1.0",
+  "description": "Command-line client for the DLSS5NVIDIA visual enhancer: batch-enhance images from your own machine through the same public API the site uses.",
+  "type": "module",
+  "bin": {
+    "dlss5-enhance": "bin/dlss5-enhance.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "keywords": [
+    "dlss5",
+    "image-enhance",
+    "upscale",
+    "cli",
+    "batch"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wangsheng1991/dlss5-enhancer-cli.git"
+  }
+}
