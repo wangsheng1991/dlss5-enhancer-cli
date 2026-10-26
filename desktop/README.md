@@ -56,8 +56,18 @@ the window's own buttons and waits for the row to settle. That run is what prove
 a `done` event that lost the file it belonged to, and an idempotency key that collided with the same
 picture under a different account.
 
+## Build a dmg
+
+```bash
+npm run make:dmg     # → ../release/DLSS5 Enhance-0.1.0.dmg, unsigned, x64
+```
+
+It is not signed (`identity: null`), so the first launch needs a right-click → **Open**, or
+`xattr -d com.apple.quarantine "/Applications/DLSS5 Enhance.app"`. The engine is copied into
+`desktop/src` before every start and every pack, because a packaged app cannot import from outside
+its own directory — those files are generated from the repository's `src/`, never edited in place.
+
 ## Not yet
 
-- No `.dmg` / `.exe` yet: `electron-builder` packaging is the next step, and the Windows build needs a
-  Windows machine or Wine.
+- No Windows build: that needs a Windows machine or Wine.
 - The window shows one queue at a time and does not remember the last folder between launches.

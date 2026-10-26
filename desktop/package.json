@@ -6,10 +6,44 @@
   "type": "module",
   "main": "main.mjs",
   "scripts": {
+    "sync:engine": "node scripts/copy-engine.cjs",
+    "prestart": "npm run sync:engine",
+    "presmoke": "npm run sync:engine",
     "start": "electron .",
-    "smoke": "electron . --smoke"
+    "smoke": "electron . --smoke",
+    "premake:dmg": "npm run sync:engine",
+    "make:dmg": "electron-builder --mac dmg --publish never"
   },
   "devDependencies": {
-    "electron": "^45.0.0"
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.dlss5nvidia.enhance",
+    "productName": "DLSS5 Enhance",
+    "copyright": "DLSS5NVIDIA",
+    "directories": {
+      "output": "../release"
+    },
+    "files": [
+      "main.mjs",
+      "preload.cjs",
+      "renderer/**/*",
+      "src/**/*",
+      "package.json",
+      "build/icon.png"
+    ],
+    "beforePack": "./scripts/copy-engine.cjs",
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.photography",
+      "identity": null,
+      "icon": "build/icon.png"
+    },
+    "dmg": {
+      "title": "DLSS5 Enhance ${version}"
+    }
   }
 }

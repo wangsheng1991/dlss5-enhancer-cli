@@ -6,14 +6,16 @@
  * refresh token in the same 0600 file the CLI writes, so signing in either place signs in both.
  */
 import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron';
-import { copyFile, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { CONTENT_TYPES, DEFAULT_JOB_TIMEOUT_MS, FACTORS, OUTPUT_FORMATS } from '../src/config.mjs';
-import { accountScope, credentialPath, getToken, readCredentials, register as createAccount, signIn } from '../src/auth.mjs';
-import { account, bootstrap } from '../src/api.mjs';
-import { inspect, runBatch } from '../src/batch.mjs';
+// `./src` is generated from the repository's `src/` by `scripts/copy-engine.cjs` (git-ignored) so the
+// same engine ships inside the app bundle; in development it is the same files, byte for byte.
+import { CONTENT_TYPES, DEFAULT_JOB_TIMEOUT_MS, FACTORS, OUTPUT_FORMATS } from './src/config.mjs';
+import { accountScope, credentialPath, getToken, readCredentials, register as createAccount, signIn } from './src/auth.mjs';
+import { account, bootstrap } from './src/api.mjs';
+import { inspect, runBatch } from './src/batch.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const smoke = process.argv.includes('--smoke');
@@ -201,6 +203,8 @@ async function runSmoke(window, shot = '') {
       // A copy, so a run never writes its result into a source tree that happens to be a repo.
       const workFile = join(await mkdtemp(join(tmpdir(), 'dlss5-e2e-')), e2eFile.split('/').pop());
       await copyFile(e2eFile, workFile);
+      const copied = await stat(workFile).catch((error) => ({ error: error.message }));
+      console.log(`E2E copy ${workFile} ${copied.size ?? copied.error}`);
       const email = `desktop-smoke-${Date.now()}@example.com`;
       const outcome = await window.webContents
         .executeJavaScript(
@@ -247,6 +251,11 @@ async function runSmoke(window, shot = '') {
   await rm(dir, { recursive: true, force: true });
   return problems;
 }
+
+process.on('uncaughtException', (error) => {
+  console.error(`main: ${error?.message || error}`);
+  if (smoke) app.exit(1);
+});
 
 app.whenReady().then(async () => {
   app.setName('DLSS5 Enhance');

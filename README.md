@@ -21,6 +21,7 @@ credentials file and spends the same credits.
 
 ```bash
 cd desktop && npm install && npm start   # Electron, dev dependency only
+cd desktop && npm run make:dmg           # → ../release/DLSS5 Enhance-0.1.0.dmg
 ```
 
 See [desktop/README.md](desktop/README.md) for the checks that need no clicking (`npm run smoke`).
