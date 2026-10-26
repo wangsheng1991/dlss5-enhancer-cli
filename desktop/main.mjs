@@ -12,7 +12,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CONTENT_TYPES, DEFAULT_JOB_TIMEOUT_MS, FACTORS, OUTPUT_FORMATS } from '../src/config.mjs';
 import { accountScope, credentialPath, getToken, readCredentials, register as createAccount, signIn } from '../src/auth.mjs';
-import { bootstrap, whoami } from '../src/api.mjs';
+import { account, bootstrap } from '../src/api.mjs';
 import { inspect, runBatch } from '../src/batch.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -50,7 +50,7 @@ async function accountState() {
     return { signedIn: false, email: null, credits: null, credentials: credentialPath(), version: app.getVersion() };
   }
   const me = await getToken()
-    .then((token) => bootstrap(token).then(() => whoami(token)))
+    .then((token) => account(token))
     .catch(() => null);
   return {
     signedIn: Boolean(me || record?.refreshToken || process.env.DLSS5_TOKEN),
@@ -137,7 +137,7 @@ function registerHandlers() {
         if (!window.isDestroyed()) window.webContents.send('batch:event', payload);
       }
     });
-    const me = await whoami(token).catch(() => null);
+    const me = await account(token).catch(() => null);
     return { rows, credits: me?.credits ?? null, failed: rows.filter((row) => !row.ok).length };
   });
 

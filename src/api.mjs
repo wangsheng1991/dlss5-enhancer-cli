@@ -34,13 +34,18 @@ async function call(path, token, { method = 'GET', body, headers = {}, timeout =
   return data;
 }
 
-export const whoami = (token) => call('/api/me', token);
-
 /**
  * The website creates the profile (and the signup credits) on first signed-in load. A command-line
  * client has no page load, so it has to ask: without this the API answers "Account is not initialized".
  */
 export const bootstrap = (token) => call('/api/me/bootstrap', token, { method: 'POST' });
+
+/**
+ * The account behind a token: tier and credits. This is the only route that answers them — a plain
+ * `GET /api/me` is a 404 in the deployment, which is how a "signed in, `?` credits" arrived in the
+ * first window build.
+ */
+export const account = (token) => bootstrap(token);
 
 /** Upload one picture and return its file id. */
 export async function upload(token, { buffer, fileName, contentType, width, height }) {

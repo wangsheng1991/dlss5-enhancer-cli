@@ -7,7 +7,7 @@ import { readdir, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { CONTENT_TYPES, DEFAULT_JOB_TIMEOUT_MS, FACTORS, OUTPUT_FORMATS } from './config.mjs';
 import { accountScope, credentialPath, getToken, readCredentials, register as createAccount, signIn } from './auth.mjs';
-import { bootstrap, whoami } from './api.mjs';
+import { account, bootstrap } from './api.mjs';
 import { runBatch } from './batch.mjs';
 
 const USAGE = `dlss5-enhance — batch-enhance images from your own machine
@@ -151,17 +151,15 @@ async function logout() {
 
 async function whoamiCommand(options) {
   const token = await getToken();
-  const me = await whoami(token).catch((error) => {
-    if (error.status === 404) return null;
-    throw error;
-  });
+  const me = await account(token).catch(() => null);
   const record = await readCredentials();
   if (options.json) {
-    console.log(JSON.stringify({ email: record?.email || null, me }, null, 2));
+    console.log(JSON.stringify({ email: record?.email || null, account: me }, null, 2));
     return;
   }
   console.log(record?.email ? `Account: ${record.email}` : 'Account: token from DLSS5_TOKEN');
-  if (me) console.log(`Server says: ${JSON.stringify(me)}`);
+  if (me) console.log(`${me.tier || 'free'} · ${me.credits} credits${me.bonusCredits ? ` (+${me.bonusCredits} bonus)` : ''}`);
+  else console.log('The server did not recognise this session. Sign in again.');
 }
 
 async function enhance(files, options) {

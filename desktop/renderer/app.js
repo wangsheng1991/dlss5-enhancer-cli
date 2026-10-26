@@ -511,6 +511,7 @@ window.__dlss5Test = {
     authClosed: !el.auth.open,
     runLabel: el.run.textContent,
     signInVisible: !el.signinOpen.hidden,
+    account: el.account.textContent,
     cssRules: document.styleSheets.length
   })
 };

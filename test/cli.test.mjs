@@ -61,7 +61,7 @@ function startMock({ failFirstSubmit = false } = {}) {
       res.writeHead(200, { 'Content-Type': 'image/png' });
       return res.end(RESULT_BYTES);
     }
-    if (url.pathname === '/api/me') return json(200, { credits: 12 });
+    if (url.pathname === '/api/me/bootstrap') return json(200, { tier: 'free', credits: 12, bonusCredits: 0 });
     return json(404, { error: 'not found' });
   });
   return new Promise((resolve) => {
@@ -197,6 +197,28 @@ test('an upstream submit failure is reported, not silently retried', async () =>
     const code = await main(['enhance', source, '--factor', '2', '--json']);
     assert.equal(code, 1, 'a failed file makes the run exit non-zero');
     assert.equal(calls.submits, 1);
+  } finally {
+    server.close();
+  }
+});
+
+test('whoami reports the credits the server holds for the session', async () => {
+  const { server, port } = await startMock();
+  try {
+    const { main } = await loadCli(port);
+    process.env.DLSS5_PASSWORD = 'correct horse';
+    await main(['login', '--email', 'user@example.com']);
+    const lines = [];
+    const original = console.log;
+    console.log = (...args) => lines.push(args.join(' '));
+    try {
+      assert.equal(await main(['whoami', '--json']), 0);
+    } finally {
+      console.log = original;
+    }
+    const parsed = JSON.parse(lines.at(-1));
+    assert.equal(parsed.account.credits, 12, 'the account route is the one that answers credits');
+    assert.equal(parsed.account.tier, 'free');
   } finally {
     server.close();
   }
