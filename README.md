@@ -108,3 +108,10 @@ The tests run against a local stand-in for the whole flow (sign in, upload ticke
 ## License
 
 MIT for the code. NVIDIA, GeForce, DLSS and RTX are trademarks of NVIDIA Corporation. This client is independent and is not affiliated with or endorsed by NVIDIA.
+
+## Related
+
+- [dlss5-visual-enhancer](https://github.com/wangsheng1991/dlss5-visual-enhancer) — Reproduce one documented enhancement example locally: input, output, hashes, compare page.
+- [dlss5-compatibility-data](https://github.com/wangsheng1991/dlss5-compatibility-data) — Source-attributed, machine-readable DLSS 5 GPU compatibility data.
+- [dlss-5-studio](https://github.com/wangsheng1991/dlss-5-studio) — The Windows RTX desktop app behind dlss5nvidia.com — requirements, release notes, issues.
+- [DLSS5NVIDIA](https://www.dlss5nvidia.com/) — the site these projects belong to
