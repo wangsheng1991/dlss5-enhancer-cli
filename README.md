@@ -24,7 +24,14 @@ cd desktop && npm install && npm start   # Electron, dev dependency only
 cd desktop && npm run make:dmg           # → ../release/DLSS5 Enhance-0.1.0.dmg
 ```
 
-**Desktop previews:** Windows x64 packaging is available with `cd desktop && npm ci && npm run make:win`; downloadable builds and their validation are listed in [Releases](https://github.com/wangsheng1991/dlss5-enhancer-cli/releases). The existing [macOS Intel v0.1.0 preview](https://github.com/wangsheng1991/dlss5-enhancer-cli/releases/tag/v0.1.0) remains available.
+**Download an installer directly:**
+
+| Platform | Preview | Download |
+|---|---|---|
+| Windows x64 | v0.1.1, unsigned | [EXE installer](https://github.com/wangsheng1991/dlss5-enhancer-cli/releases/download/v0.1.1/DLSS5.Enhance-0.1.1-win-x64-Setup.exe) |
+| macOS Intel | v0.1.0, unsigned | [DMG](https://github.com/wangsheng1991/dlss5-enhancer-cli/releases/download/v0.1.0/DLSS5.Enhance-0.1.0.dmg) |
+
+[Windows release notes, SHA-256 checksum and test screenshot](https://github.com/wangsheng1991/dlss5-enhancer-cli/releases/tag/v0.1.1). Build Windows from source with `cd desktop && npm ci && npm run make:win`.
 
 Downloading an installer needs no email or account. Processing uses the website's cloud service and requires an account and credits; it is not offline RTX inference. This Enhance client is separate from the [Windows RTX Studio private beta](https://www.dlss5nvidia.com/studio-beta). For game-character style conversion without installation, [try the online sample](https://www.dlss5nvidia.com/dashboard?tool=game-character-style&sample=characterStyle).
 
