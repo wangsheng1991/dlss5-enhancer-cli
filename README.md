@@ -39,6 +39,14 @@ Unsigned previews may trigger OS reputation warnings. Windows releases target x6
 
 See [desktop/README.md](desktop/README.md) for the checks that need no clicking (`npm run smoke`).
 
+## Windows character styling — planned, not in v0.1.1
+
+The next desktop workflow is **character image → style → credit confirmation → generate → compare → save**. Current Windows v0.1.1 remains a cloud batch-enhancement preview. Character styling is available in the browser today; this desktop feature has not shipped.
+
+[Implementation requirements and acceptance checklist](docs/WINDOWS-CHARACTER-STYLE-20261102.md) · [Pinned style/API catalog](docs/character-style-v1.snapshot.json) · [Live catalog](https://www.dlss5nvidia.com/desktop/character-style-v1.json)
+
+The brief reuses the five existing browser styles and the current `mode=edit` API. The Windows client needs no local RTX or WSL. The separate local RTX Studio beta keeps its own hardware requirements and application process. A future release must pass native Windows image-to-file validation before the website marks this feature as available.
+
 ## Requirements
 
 Node 18 or newer. No dependencies, no build step, nothing to compile.

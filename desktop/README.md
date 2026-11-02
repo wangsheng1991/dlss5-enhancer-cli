@@ -7,6 +7,10 @@ re-implemented here, `src/batch.mjs` does the work and this shell only shows it.
 
 ![The queue](screenshot.png)
 
+## Planned character-style workflow
+
+Windows v0.1.1 currently provides enhancement. Character styling is not yet released in this desktop app. See the [implementation requirements](../docs/WINDOWS-CHARACTER-STYLE-20261102.md) and [pinned catalog](../docs/character-style-v1.snapshot.json) before implementing import, five style choices, cost confirmation, generation, comparison, safe saving and task recovery. Use the current cloud edit API; end users need neither WSL nor local RTX.
+
 ## Run it
 
 **Download:** [DLSS5 Enhance 0.1.0](https://github.com/wangsheng1991/dlss5-enhancer-cli/releases/tag/v0.1.0) — unsigned macOS build, right-click → Open the first time.

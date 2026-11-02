@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "revision": "2026-11-02",
+  "workflow": "game-character-style",
+  "desktopStatus": "planned",
+  "publishedWindowsVersion": "0.1.1",
+  "publishedWindowsCapability": "batch-image-enhancement",
+  "execution": "cloud",
+  "requiresLocalRtx": false,
+  "requiresWsl": false,
+  "specificationUrl": "https://github.com/wangsheng1991/dlss5-enhancer-cli/blob/master/docs/WINDOWS-CHARACTER-STYLE-20261102.md",
+  "presets": [
+    {
+      "id": "cyberpunk",
+      "label": "Cyberpunk neon",
+      "labelZh": "赛博朋克霓虹",
+      "prompt": "Original game character, preserve silhouette and costume; cyberpunk cinematic lighting, wet pavement, neon reflections, no text."
+    },
+    {
+      "id": "fantasy",
+      "label": "Grounded fantasy",
+      "labelZh": "写实奇幻",
+      "prompt": "Original fantasy ranger, preserve pose and clothing; misty forest, grounded materials, cinematic game render."
+    },
+    {
+      "id": "sci-fi",
+      "label": "Hard-surface sci-fi",
+      "labelZh": "硬表面科幻",
+      "prompt": "Original tactical pilot, preserve armor silhouette and stance; futuristic hangar, realistic materials, no interface text."
+    },
+    {
+      "id": "anime",
+      "label": "Anime cel shading",
+      "labelZh": "动漫赛璐璐",
+      "prompt": "Original sky pirate captain, preserve pose and coat; floating islands, bright adventure game lighting, no logos."
+    },
+    {
+      "id": "realistic",
+      "label": "Realistic cinematic",
+      "labelZh": "电影写实",
+      "prompt": "Original esports player, preserve face and headset; dramatic arena lighting, modern cinematic game portrait."
+    }
+  ],
+  "input": {
+    "contentTypes": [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ],
+    "maxBytes": 10485760,
+    "maxPixels": 16777216,
+    "minDimension": 16,
+    "maxDimension": 8192
+  },
+  "output": {
+    "maxEdge": 1536,
+    "dimensionMultiple": 16,
+    "formats": [
+      "webp",
+      "png",
+      "jpeg"
+    ],
+    "defaultFormat": "webp",
+    "geometry": "preserveOutput"
+  },
+  "api": {
+    "baseUrl": "https://www.dlss5nvidia.com",
+    "auth": "Bearer user ID token",
+    "bootstrap": {
+      "method": "POST",
+      "path": "/api/me/bootstrap"
+    },
+    "upload": {
+      "method": "POST",
+      "path": "/api/image-edit/upload",
+      "model": "flux-klein"
+    },
+    "submit": {
+      "method": "POST",
+      "path": "/api/image-edit/jobs",
+      "mode": "edit",
+      "idempotencyHeader": "Idempotency-Key"
+    },
+    "status": {
+      "method": "GET",
+      "pathTemplate": "/api/image-edit/jobs/{jobId}"
+    },
+    "result": {
+      "method": "GET",
+      "pathTemplate": "/api/image-edit/results/{jobId}"
+    }
+  },
+  "guestExample": {
+    "sample": "characterStyle",
+    "inputPath": "/examples/generated/game-cyber-1-before.jpg",
+    "method": "POST",
+    "path": "/api/image-edit/samples",
+    "body": {
+      "sample": "characterStyle"
+    },
+    "resultPath": "/api/image-edit/samples?sample=characterStyle",
+    "fixedExampleOnly": true
+  },
+  "billing": {
+    "ownImagesRequireAccount": true,
+    "reservedCreditsPerJob": 1,
+    "authority": "server",
+    "refreshAccountAfterSettlement": true
+  },
+  "limitations": [
+    "Style references, not an in-game DLSS runtime.",
+    "Identity, costume and pose preservation require visual review; they are not guaranteed.",
+    "Free examples are fixed cached examples, not new processing of user uploads."
+  ]
+}
