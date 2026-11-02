@@ -235,7 +235,7 @@ async function runSmoke(window, shot = '') {
   if (report?.error) problems.push(`renderer: ${report.error}`);
   if (report && !report.error) {
     if (report.bridge < 10) problems.push('renderer: preload bridge missing');
-    if (report.rows !== 1 || report.firstPill === 'Error') problems.push('renderer: local PNG inspection failed');
+    if (report.rows !== 1 || report.firstPill !== 'queued') problems.push('renderer: local PNG inspection failed');
     if (!report.thumb.startsWith('dlss5file:')) problems.push('renderer: preview protocol missing');
     if (!report.cssRules || !report.authClosed || !report.signInVisible) problems.push('renderer: initial UI state invalid');
   }

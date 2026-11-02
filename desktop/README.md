@@ -69,7 +69,11 @@ It is not signed (`identity: null`), so the first launch needs a right-click →
 `desktop/src` before every start and every pack, because a packaged app cannot import from outside
 its own directory — those files are generated from the repository's `src/`, never edited in place.
 
-## Not yet
+## Windows x64 preview
 
-- No Windows build: that needs a Windows machine or Wine.
+On Windows, run `npm ci` then `npm run make:win` in this directory. The NSIS installer goes to `../release/`. It installs per user without requiring administrator access. This is an unsigned cloud client, separate from the local Windows RTX Studio beta. Processing requires internet access, the website account and credits.
+
+The GitHub Windows workflow tests the installed executable and saves its screenshot, logs and SHA-256 checksum as build artifacts. It does not exercise paid cloud generation. Testing on the owner's `ssh-win` computer is still pending because its Cloudflare SSH handshake fails.
+
+## Not yet
 - The window shows one queue at a time and does not remember the last folder between launches.

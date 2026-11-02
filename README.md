@@ -24,7 +24,11 @@ cd desktop && npm install && npm start   # Electron, dev dependency only
 cd desktop && npm run make:dmg           # → ../release/DLSS5 Enhance-0.1.0.dmg
 ```
 
-**Download:** [DLSS5 Enhance 0.1.0](https://github.com/wangsheng1991/dlss5-enhancer-cli/releases/tag/v0.1.0) (unsigned macOS build; right-click → Open the first time) — or build it yourself with `npm run make:dmg`.
+**Desktop previews:** Windows x64 packaging is available with `cd desktop && npm ci && npm run make:win`; downloadable builds and their validation are listed in [Releases](https://github.com/wangsheng1991/dlss5-enhancer-cli/releases). The existing [macOS Intel v0.1.0 preview](https://github.com/wangsheng1991/dlss5-enhancer-cli/releases/tag/v0.1.0) remains available.
+
+Downloading an installer needs no email or account. Processing uses the website's cloud service and requires an account and credits; it is not offline RTX inference. This Enhance client is separate from the [Windows RTX Studio private beta](https://www.dlss5nvidia.com/studio-beta). For game-character style conversion without installation, [try the online sample](https://www.dlss5nvidia.com/dashboard?tool=game-character-style&sample=characterStyle).
+
+Unsigned previews may trigger OS reputation warnings. Windows releases target x64; ARM and Windows 7/8 are not supported. The Windows workflow builds an NSIS installer, installs it under a path containing spaces and Chinese characters, and launches the installed app with an isolated test credential path. It checks the bridge, image inspection, UI and screenshot without cloud jobs or credits. See the [Windows build checks](https://github.com/wangsheng1991/dlss5-enhancer-cli/actions/workflows/windows.yml).
 
 See [desktop/README.md](desktop/README.md) for the checks that need no clicking (`npm run smoke`).
 
