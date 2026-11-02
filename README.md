@@ -45,6 +45,8 @@ The next desktop workflow is **character image → style → credit confirmation
 
 [Implementation requirements and acceptance checklist](docs/WINDOWS-CHARACTER-STYLE-20261102.md) · [Pinned style/API catalog](docs/character-style-v1.snapshot.json) · [Live catalog](https://www.dlss5nvidia.com/desktop/character-style-v1.json)
 
+[r/DLSS5 community research and revised validation priorities](docs/REDDIT-DLSS5-NEEDS-20261102.md) emphasize faithful game visuals, reproducible settings, compatibility and motion/performance evidence. The five browser styles are existing options, not a measured ranking of community demand.
+
 The brief reuses the five existing browser styles and the current `mode=edit` API. The Windows client needs no local RTX or WSL. The separate local RTX Studio beta keeps its own hardware requirements and application process. A future release must pass native Windows image-to-file validation before the website marks this feature as available.
 
 ## Requirements
