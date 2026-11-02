@@ -1,0 +1,53 @@
+name: Windows desktop preview
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'desktop/**'
+      - 'src/**'
+      - '.github/workflows/windows.yml'
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm test
+      - run: npm ci
+        working-directory: desktop
+      - run: npm run make:win
+        working-directory: desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Install and run the packaged Windows application
+        shell: pwsh
+        run: |
+          $installer = (Get-ChildItem release/*-win-x64-Setup.exe).FullName
+          $installDir = Join-Path $env:RUNNER_TEMP 'DLSS5 Enhance 测试'
+          $install = Start-Process $installer -ArgumentList @('/S', "/D=$installDir") -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw "Installer exit: $($install.ExitCode)" }
+          $env:DLSS5_CREDENTIALS = Join-Path $env:RUNNER_TEMP 'smoke-credentials.json'
+          $shot = Join-Path $env:GITHUB_WORKSPACE 'release/windows-smoke.png'
+          $app = Start-Process (Join-Path $installDir 'DLSS5 Enhance.exe') -ArgumentList @('--smoke', "--shot=$shot") -Wait -PassThru -RedirectStandardOutput 'release/smoke.log' -RedirectStandardError 'release/smoke-error.log'
+          Get-Content release/smoke.log
+          Get-Content release/smoke-error.log
+          if ($app.ExitCode -ne 0) { throw "App exit: $($app.ExitCode)" }
+          if (!(Test-Path $shot)) { throw 'Screenshot missing' }
+          if (!(Select-String -Path release/smoke.log -Pattern 'SMOKE ' -Quiet)) { throw 'Smoke report missing' }
+          Get-FileHash $installer -Algorithm SHA256 | Format-List | Out-File release/SHA256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-preview
+          path: |
+            release/*-win-x64-Setup.exe
+            release/*.png
+            release/*.log
+            release/SHA256.txt

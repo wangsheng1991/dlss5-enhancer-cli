@@ -8,7 +8,7 @@
 import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron';
 import { copyFile, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 // `./src` is generated from the repository's `src/` by `scripts/copy-engine.cjs` (git-ignored) so the
 // same engine ships inside the app bundle; in development it is the same files, byte for byte.
@@ -201,7 +201,7 @@ async function runSmoke(window, shot = '') {
     if (!e2eFile) problems.push('renderer: --e2e needs --file=<an image>');
     else {
       // A copy, so a run never writes its result into a source tree that happens to be a repo.
-      const workFile = join(await mkdtemp(join(tmpdir(), 'dlss5-e2e-')), e2eFile.split('/').pop());
+      const workFile = join(await mkdtemp(join(tmpdir(), 'dlss5-e2e-')), basename(e2eFile));
       await copyFile(e2eFile, workFile);
       const copied = await stat(workFile).catch((error) => ({ error: error.message }));
       console.log(`E2E copy ${workFile} ${copied.size ?? copied.error}`);
@@ -213,7 +213,7 @@ async function runSmoke(window, shot = '') {
              await window.__dlss5Test.addFiles([${JSON.stringify(workFile)}]);
              await window.__dlss5Test.run();
              const summary = await window.__dlss5Test.wait();
-             const compared = window.__dlss5Test.openCompare('${workFile.split('/').pop()}');
+             const compared = window.__dlss5Test.openCompare(${JSON.stringify(basename(workFile))});
              return { account, summary, compared, events: window.__dlss5Test.events(), rows: window.__dlss5Test.rows(), last: window.__dlss5Test.lastResult() };
            })()`
         )
@@ -233,6 +233,12 @@ async function runSmoke(window, shot = '') {
     );
   }
   if (report?.error) problems.push(`renderer: ${report.error}`);
+  if (report && !report.error) {
+    if (report.bridge < 10) problems.push('renderer: preload bridge missing');
+    if (report.rows !== 1 || report.firstPill === 'Error') problems.push('renderer: local PNG inspection failed');
+    if (!report.thumb.startsWith('dlss5file:')) problems.push('renderer: preview protocol missing');
+    if (!report.cssRules || !report.authClosed || !report.signInVisible) problems.push('renderer: initial UI state invalid');
+  }
   console.log(`SMOKE ${JSON.stringify(report)}`);
 
   if (shot) {

@@ -1,6 +1,6 @@
 {
   "name": "dlss5-enhance-desktop",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Desktop window for the DLSS5NVIDIA visual enhancer: drop a folder of images, watch each one finish, compare before and after. Same account and same public API as the site and the CLI.",
   "type": "module",
@@ -12,7 +12,9 @@
     "start": "electron .",
     "smoke": "electron . --smoke",
     "premake:dmg": "npm run sync:engine",
-    "make:dmg": "electron-builder --mac dmg --publish never"
+    "make:dmg": "electron-builder --mac dmg --publish never",
+    "premake:win": "npm run sync:engine",
+    "make:win": "electron-builder --win nsis --x64 --publish never"
   },
   "devDependencies": {
     "electron": "^45.0.0",
@@ -44,6 +46,23 @@
     },
     "dmg": {
       "title": "DLSS5 Enhance ${version}"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "DLSS5.Enhance-${version}-win-x64-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "runAfterFinish": false
     }
   }
 }
