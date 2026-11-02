@@ -206,6 +206,9 @@ function setSummary(text) {
 }
 
 async function addFiles(paths) {
+  // A cancelled dialog resolves to an empty list. That is not a rejected file, so it must not
+  // overwrite the run summary with "0 items ignored".
+  if (!paths || paths.length === 0) return;
   const known = new Set(state.order);
   let added = 0;
   for (const path of paths) {
@@ -321,6 +324,12 @@ async function publishAccount(next) {
   el.signout.hidden = !signedIn;
   el.credPath.textContent = credentials || '';
   refreshRunButton();
+  // The queue line quotes the credit balance, so it has to be redrawn once the stored session
+  // resolves — but never on top of the summary of a run that already finished.
+  if (!state.running && !state.lastResult && state.order.length) {
+    const ready = [...state.rows.values()].filter((row) => row.targetWidth).length;
+    setSummary(`${ready} of ${state.order.length} ready to send · ${signedIn ? `${state.account.credits ?? '?'} credits on the account` : 'sign in to use your credits'}.`);
+  }
 }
 
 async function refreshAccount() {
